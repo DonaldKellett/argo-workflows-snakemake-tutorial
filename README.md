@@ -38,7 +38,7 @@ export AUTH_TOKEN="Bearer $(kubectl -n argo create token argo-workflows-server)"
 echo $AUTH_TOKEN
 ```
 
-Paste the output of the comamnds above into the login form and click "Login" \(or equivalent\). You should now be logged in to the Argo Workflows UI dashboard.
+Paste the output of the commands above into the login form and click "Login" \(or equivalent\). You should now be logged in to the Argo Workflows UI dashboard.
 
 Click around and find the workflow named `snakemake-tutorial-xxxxx` \(`xxxxx` is a placeholder for the auto-generated name\), then select the workflow for details.
 

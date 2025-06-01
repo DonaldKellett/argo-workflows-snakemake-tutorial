@@ -7,8 +7,22 @@ metadata:
 spec:
   arguments:
     parameters:
-      - name: message
-        value: "Hello Argo Workflows!"
+      - name: sample-name
+        value: A
+  serviceAccountName: argo-workflow
+  workflowTemplateRef:
+    name: snakemake-tutorial
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: snakemake-tutorial-
+  namespace: argo
+spec:
+  arguments:
+    parameters:
+      - name: sample-name
+        value: B
   serviceAccountName: argo-workflow
   workflowTemplateRef:
     name: snakemake-tutorial

@@ -16,6 +16,12 @@ spec:
             - -c
             - |
               curl -Lo /data/genome.fa https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa
+              curl -Lo /data/genome.fa.amb https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.amb
+              curl -Lo /data/genome.fa.ann https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.ann
+              curl -Lo /data/genome.fa.bwt https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.bwt
+              curl -Lo /data/genome.fa.fai https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.fai
+              curl -Lo /data/genome.fa.pac https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.pac
+              curl -Lo /data/genome.fa.sa https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa.sa
               mkdir -p /data/samples/
               curl -Lo /data/samples/A.fastq https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/samples/A.fastq
               curl -Lo /data/samples/B.fastq https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/samples/B.fastq

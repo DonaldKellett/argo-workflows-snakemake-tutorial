@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+data:
+  snakemake-tutorial-data: |
+    s3:
+      bucket: snakemake-tutorial-data
+      endpoint: minio.minio:9000
+      insecure: true
+      accessKeySecret:
+        name: minio-root-credentials
+        key: accessKey
+      secretKeySecret:
+        name: minio-root-credentials
+        key: secretKey
+kind: ConfigMap
+metadata:
+  annotations:
+    workflows.argoproj.io/default-artifact-repository: snakemake-tutorial-data
+  creationTimestamp: null
+  name: artifact-repositories
+  namespace: argo

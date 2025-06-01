@@ -6,22 +6,72 @@ metadata:
   namespace: argo
 spec:
   entrypoint: snakemake-tutorial-dag
+  artifactGC:
+    strategy: Never
   serviceAccountName: argo-workflow
   templates:
-    - name: print-message
+    - name: bwa-map
       inputs:
         parameters:
-          - name: message
+          - name: sample-name
+        artifacts:
+          - name: reference-genome
+            path: /tmp/genome.fa
+            s3:
+              key: genome.fa
+          - name: reference-genome-amb
+            path: /tmp/genome.fa.amb
+            s3:
+              key: genome.fa.amb
+          - name: reference-genome-ann
+            path: /tmp/genome.fa.ann
+            s3:
+              key: genome.fa.ann
+          - name: reference-genome-bwt
+            path: /tmp/genome.fa.bwt
+            s3:
+              key: genome.fa.bwt
+          - name: reference-genome-fai
+            path: /tmp/genome.fa.fai
+            s3:
+              key: genome.fa.fai
+          - name: reference-genome-pac
+            path: /tmp/genome.fa.pac
+            s3:
+              key: genome.fa.pac
+          - name: reference-genome-sa
+            path: /tmp/genome.fa.sa
+            s3:
+              key: genome.fa.sa
+          - name: read
+            path: /tmp/read.fastq
+            s3:
+              key: "samples/{{inputs.parameters.sample-name}}.fastq"
       container:
-        image: busybox
-        command: [echo]
-        args: ["{{inputs.parameters.message}}"]
+        image: snakemake/snakemake-tutorial:v8.0.0@sha256:c60235e0e228968afc6900c28d1f8ebbc801161e3c131bfd6a2ef6c9ce373809
+        command:
+          - conda
+        args:
+          - run
+          - --no-capture-output
+          - -n
+          - snakemake-tutorial
+          - /bin/bash
+          - -c
+          - |
+            bwa mem /tmp/genome.fa /tmp/read.fastq | samtools view -Sb - > /tmp/mapped-read.bam
+      outputs:
+        artifacts: 
+          - name: mapped-read
+            path: /tmp/mapped-read.bam
+            s3:
+              key: "mapped_reads/{{inputs.parameters.sample-name}}.bam"
     - name: snakemake-tutorial-dag
       dag:
         tasks:
-          - name: hello-world
+          - name: map-read
             arguments:
               parameters:
-                - name: message
-                  value: "{{workflow.parameters.message}}"
-            template: print-message
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name}}"
+            template: bwa-map

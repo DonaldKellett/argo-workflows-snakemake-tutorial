@@ -1,0 +1,4 @@
+resources:
+  - secrets.yaml
+  - configmaps.yaml
+  - workflowtemplates.yaml

@@ -28,7 +28,7 @@ helm -n argo install \
 	--create-namespace
 echo "Waiting for Argo Workflows controller and server to be available, this may take up to 5m0s ..."
 kubectl -n argo wait --for=condition=Available deploy --all --timeout=300s
-kubectl -n argo create -f argo-workflows/workflowtemplates.yaml
+kubectl -n argo create -k argo-workflows/
 echo "Waiting for 5s ..."
 sleep 5
 kubectl -n argo create -f argo-workflows/workflows.yaml

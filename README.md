@@ -1,4 +1,4 @@
-# argo-workflows-snakemake-tutorial
+# snakemake-tutorial-argo-workflows
 
 My adaptation of the [Snakemake tutorial](https://snakemake.readthedocs.io/en/stable/tutorial/tutorial.html) with Argo Workflows
 

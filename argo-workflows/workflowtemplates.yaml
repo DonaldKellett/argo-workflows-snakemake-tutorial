@@ -1,0 +1,27 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: snakemake-tutorial
+  namespace: argo
+spec:
+  entrypoint: snakemake-tutorial-dag
+  serviceAccountName: argo-workflow
+  templates:
+    - name: print-message
+      inputs:
+        parameters:
+          - name: message
+      container:
+        image: busybox
+        command: [echo]
+        args: ["{{inputs.parameters.message}}"]
+    - name: snakemake-tutorial-dag
+      dag:
+        tasks:
+          - name: hello-world
+            arguments:
+              parameters:
+                - name: message
+                  value: "{{workflow.parameters.message}}"
+            template: print-message

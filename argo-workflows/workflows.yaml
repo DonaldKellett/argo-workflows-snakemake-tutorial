@@ -1,0 +1,14 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: snakemake-tutorial-
+  namespace: argo
+spec:
+  arguments:
+    parameters:
+      - name: message
+        value: "Hello Argo Workflows!"
+  serviceAccountName: argo-workflow
+  workflowTemplateRef:
+    name: snakemake-tutorial

@@ -1,0 +1,46 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  creationTimestamp: null
+  name: setup-minio
+  namespace: minio
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+    spec:
+      initContainers:
+        - command:
+            - /bin/sh
+            - -c
+            - |
+              curl -Lo /data/genome.fa https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/genome.fa
+              mkdir -p /data/samples/
+              curl -Lo /data/samples/A.fastq https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/samples/A.fastq
+              curl -Lo /data/samples/B.fastq https://raw.githubusercontent.com/snakemake/snakemake-tutorial-data/be6ae5a67edbeeb884a82f3f748f2bf3050b7745/data/samples/B.fastq
+          image: curlimages/curl:8.13.0@sha256:d43bdb28bae0be0998f3be83199bfb2b81e0a30b034b6d7586ce7e05de34c3fd
+          name: download-data
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - command:
+            - /bin/bash
+            - -c
+            - |
+              mc alias set my-minio http://minio:9000/ minio-admin minio-secret-password
+              mc mb my-minio/snakemake-tutorial-data
+              mc cp --recursive /data/ my-minio/snakemake-tutorial-data/
+          image: minio/mc:RELEASE.2025-05-21T01-59-54Z@sha256:09f93f534cde415d192bb6084dd0e0ddd1715fb602f8a922ad121fd2bf0f8b44
+          name: setup-minio
+          resources: {}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      restartPolicy: Never
+      volumes:
+        - name: data
+          emptyDir: {}
+status: {}

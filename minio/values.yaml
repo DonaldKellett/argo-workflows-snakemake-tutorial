@@ -1,0 +1,3 @@
+auth:
+  rootUser: minio-admin
+  rootPassword: minio-secret-password

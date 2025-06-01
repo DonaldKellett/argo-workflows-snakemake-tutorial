@@ -66,6 +66,59 @@ spec:
             path: /tmp/mapped-read.bam
             s3:
               key: "mapped_reads/{{inputs.parameters.sample-name}}.bam"
+    - name: samtools-sort
+      inputs:
+        parameters:
+          - name: sample-name
+        artifacts:
+          - name: mapped-read
+            path: /tmp/mapped-read.bam
+      container:
+        image: snakemake/snakemake-tutorial:v8.0.0@sha256:c60235e0e228968afc6900c28d1f8ebbc801161e3c131bfd6a2ef6c9ce373809
+        command:
+          - conda
+        args:
+          - run
+          - --no-capture-output
+          - -n
+          - snakemake-tutorial
+          - /bin/bash
+          - -c
+          - |
+            samtools sort -T sorted_reads/{{inputs.parameters.sample-name}} \
+                -O bam /tmp/mapped-read.bam > /tmp/sorted-read.bam
+      outputs:
+        artifacts: 
+          - name: sorted-read
+            path: /tmp/sorted-read.bam
+            s3:
+              key: "sorted_reads/{{inputs.parameters.sample-name}}.bam"
+    - name: samtools-index
+      inputs:
+        parameters:
+          - name: sample-name
+        artifacts:
+          - name: sorted-read
+            path: /tmp/sorted-read.bam
+      container:
+        image: snakemake/snakemake-tutorial:v8.0.0@sha256:c60235e0e228968afc6900c28d1f8ebbc801161e3c131bfd6a2ef6c9ce373809
+        command:
+          - conda
+        args:
+          - run
+          - --no-capture-output
+          - -n
+          - snakemake-tutorial
+          - /bin/bash
+          - -c
+          - |
+            samtools index /tmp/sorted-read.bam
+      outputs:
+        artifacts: 
+          - name: sorted-read-index
+            path: /tmp/sorted-read.bam.bai
+            s3:
+              key: "sorted_reads/{{inputs.parameters.sample-name}}.bam.bai"
     - name: snakemake-tutorial-dag
       dag:
         tasks:
@@ -75,3 +128,25 @@ spec:
                 - name: sample-name
                   value: "{{workflow.parameters.sample-name}}"
             template: bwa-map
+          - name: sort-read
+            dependencies:
+              - map-read
+            arguments:
+              parameters:
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name}}"
+              artifacts:
+                - name: mapped-read
+                  from: "{{tasks.map-read.outputs.artifacts.mapped-read}}"
+            template: samtools-sort
+          - name: index-sorted-read
+            dependencies:
+              - sort-read
+            arguments:
+              parameters:
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name}}"
+              artifacts:
+                - name: sorted-read
+                  from: "{{tasks.sort-read.outputs.artifacts.sorted-read}}"
+            template: samtools-index

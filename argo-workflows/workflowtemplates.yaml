@@ -119,34 +119,145 @@ spec:
             path: /tmp/sorted-read.bam.bai
             s3:
               key: "sorted_reads/{{inputs.parameters.sample-name}}.bam.bai"
+    - name: bcftools-call
+      inputs:
+        parameters:
+          - name: sample-name-1
+          - name: sample-name-2
+        artifacts:
+          - name: reference-genome
+            path: /tmp/genome.fa
+            s3:
+              key: genome.fa
+          - name: reference-genome-amb
+            path: /tmp/genome.fa.amb
+            s3:
+              key: genome.fa.amb
+          - name: reference-genome-ann
+            path: /tmp/genome.fa.ann
+            s3:
+              key: genome.fa.ann
+          - name: reference-genome-bwt
+            path: /tmp/genome.fa.bwt
+            s3:
+              key: genome.fa.bwt
+          - name: reference-genome-fai
+            path: /tmp/genome.fa.fai
+            s3:
+              key: genome.fa.fai
+          - name: reference-genome-pac
+            path: /tmp/genome.fa.pac
+            s3:
+              key: genome.fa.pac
+          - name: reference-genome-sa
+            path: /tmp/genome.fa.sa
+            s3:
+              key: genome.fa.sa
+          - name: sorted-read-1
+            path: /tmp/sorted-read-1.bam
+          - name: sorted-read-2
+            path: /tmp/sorted-read-2.bam
+          - name: sorted-read-index-1
+            path: /tmp/sorted-read-1.bam.bai
+          - name: sorted-read-index-2
+            path: /tmp/sorted-read-2.bam.bai
+      container:
+        image: snakemake/snakemake-tutorial:v8.0.0@sha256:c60235e0e228968afc6900c28d1f8ebbc801161e3c131bfd6a2ef6c9ce373809
+        command:
+          - conda
+        args:
+          - run
+          - --no-capture-output
+          - -n
+          - snakemake-tutorial
+          - /bin/bash
+          - -c
+          - |
+            bcftools mpileup -f /tmp/genome.fa /tmp/sorted-read-1.bam /tmp/sorted-read-2.bam | bcftools call -mv - > /tmp/all.vcf
+      outputs:
+        artifacts: 
+          - name: genomic-variants
+            path: /tmp/all.vcf
+            s3:
+              key: "calls/all.vcf"
     - name: snakemake-tutorial-dag
       dag:
         tasks:
-          - name: map-read
+          - name: map-read-1
             arguments:
               parameters:
                 - name: sample-name
-                  value: "{{workflow.parameters.sample-name}}"
+                  value: "{{workflow.parameters.sample-name-1}}"
             template: bwa-map
-          - name: sort-read
-            dependencies:
-              - map-read
+          - name: map-read-2
             arguments:
               parameters:
                 - name: sample-name
-                  value: "{{workflow.parameters.sample-name}}"
+                  value: "{{workflow.parameters.sample-name-2}}"
+            template: bwa-map
+          - name: sort-read-1
+            dependencies:
+              - map-read-1
+            arguments:
+              parameters:
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name-1}}"
               artifacts:
                 - name: mapped-read
-                  from: "{{tasks.map-read.outputs.artifacts.mapped-read}}"
+                  from: "{{tasks.map-read-1.outputs.artifacts.mapped-read}}"
             template: samtools-sort
-          - name: index-sorted-read
+          - name: sort-read-2
             dependencies:
-              - sort-read
+              - map-read-2
             arguments:
               parameters:
                 - name: sample-name
-                  value: "{{workflow.parameters.sample-name}}"
+                  value: "{{workflow.parameters.sample-name-2}}"
+              artifacts:
+                - name: mapped-read
+                  from: "{{tasks.map-read-2.outputs.artifacts.mapped-read}}"
+            template: samtools-sort
+          - name: index-sorted-read-1
+            dependencies:
+              - sort-read-1
+            arguments:
+              parameters:
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name-1}}"
               artifacts:
                 - name: sorted-read
-                  from: "{{tasks.sort-read.outputs.artifacts.sorted-read}}"
+                  from: "{{tasks.sort-read-1.outputs.artifacts.sorted-read}}"
             template: samtools-index
+          - name: index-sorted-read-2
+            dependencies:
+              - sort-read-2
+            arguments:
+              parameters:
+                - name: sample-name
+                  value: "{{workflow.parameters.sample-name-2}}"
+              artifacts:
+                - name: sorted-read
+                  from: "{{tasks.sort-read-2.outputs.artifacts.sorted-read}}"
+            template: samtools-index
+          - name: aggregate-genomic-variants
+            dependencies:
+              - sort-read-1
+              - sort-read-2
+              - index-sorted-read-1
+              - index-sorted-read-2
+            arguments:
+              parameters:
+                - name: sample-name-1
+                  value: "{{workflow.parameters.sample-name-1}}"
+                - name: sample-name-2
+                  value: "{{workflow.parameters.sample-name-2}}"
+              artifacts:
+                - name: sorted-read-1
+                  from: "{{tasks.sort-read-1.outputs.artifacts.sorted-read}}"
+                - name: sorted-read-2
+                  from: "{{tasks.sort-read-2.outputs.artifacts.sorted-read}}"
+                - name: sorted-read-index-1
+                  from: "{{tasks.index-sorted-read-1.outputs.artifacts.sorted-read-index}}"
+                - name: sorted-read-index-2
+                  from: "{{tasks.index-sorted-read-2.outputs.artifacts.sorted-read-index}}"
+            template: bcftools-call
